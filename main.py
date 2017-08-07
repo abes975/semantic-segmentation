@@ -37,12 +37,12 @@ def load_vgg(sess, vgg_path):
     tf.saved_model.loader.load(sess, [vgg_tag], vgg_path)
     # output of our function
     tensors = []
-
-    tensors.append(tf.get_default_graph().get_tensor_by_name(vgg_input_tensor_name))
-    tensors.append(tf.get_default_graph().get_tensor_by_name(vgg_keep_prob_tensor_name))
-    tensors.append(tf.get_default_graph().get_tensor_by_name(vgg_layer3_out_tensor_name))
-    tensors.append(tf.get_default_graph().get_tensor_by_name(vgg_layer4_out_tensor_name))
-    tensors.append(tf.get_default_graph().get_tensor_by_name(vgg_layer7_out_tensor_name))
+    vgg_graph = tf.get_default_graph()
+    tensors.append(vgg_graph.get_tensor_by_name(vgg_input_tensor_name))
+    tensors.append(vgg_graph.get_tensor_by_name(vgg_keep_prob_tensor_name))
+    tensors.append(vgg_graph.get_tensor_by_name(vgg_layer3_out_tensor_name))
+    tensors.append(vgg_graph.get_tensor_by_name(vgg_layer4_out_tensor_name))
+    tensors.append(vgg_graph.get_tensor_by_name(vgg_layer7_out_tensor_name))
 
     return tensors
 
@@ -139,6 +139,7 @@ def run():
     runs_dir = './runs'
     tests.test_for_kitti_dataset(data_dir)
 
+    saver = tf.train.Saver()
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
 
@@ -171,7 +172,7 @@ def run():
 
         logits, trainer, loss = optimize(
                                 trans_3_4_7,
-                                correct_labels,
+                                correct_label,
                                 learning_rate,
                                 num_classes)
 
@@ -179,7 +180,7 @@ def run():
         sess.run(tf.global_variables_initializer())
         # Choose here this param after some trial and error
         epochs = 15
-        batch_size = 16
+        batch_size = 1
 
         train_nn(sess, epochs, batch_size, get_batches_fn, trainer, loss,
             input_image, correct_label, keep_prob, learning_rate)
